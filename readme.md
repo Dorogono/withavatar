@@ -1,5 +1,6 @@
-# withavatar 기능 테스트
+# withavatar
 
+## 구현된 기능
 1. Exporter 
   - glb로만 출력 (2022.08.13-2022.08.14)
   
