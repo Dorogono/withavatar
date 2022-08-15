@@ -99,6 +99,76 @@ function saveArrayBuffer(buffer, filename) {
 }
 
 /**
+ * JSZip
+ */
+let name;
+const input = document.getElementById("uploadInput");
+input.addEventListener("change", (evt) => {
+  // function handleFile(f) {
+  //   console.log("title : ", f.name);
+
+  //   JSZip.loadAsync(f).then((zip) => {
+  //     zip.forEach((realativePath, zipEntry) => {
+  //       console.log("relativePath: ", realativePath);
+  //       console.log("zipEntry: ", zipEntry);
+  //       const file = zip.file(realativePath);
+
+  //       file.async("blob").then((buf) => {
+  //         console.log(buf);
+  //       });
+  //     });
+  //   });
+  // }
+
+  // const files = evt.target.files;
+  // for (let i = 0; i < files.length; i++) {
+  //   handleFile(files[i]);
+  // }
+
+  JSZipUtils.getBinaryContent("/scene.zip", (err, data) => {
+    JSZip.loadAsync(data).then((file) => {
+      name = file.files["scene.glb"];
+      console.log(name);
+      const ktx2Loader = new KTX2Loader()
+        .setTranscoderPath("/basis/")
+        .detectSupport(renderer);
+
+      new GLTFLoader()
+        .setKTX2Loader(ktx2Loader)
+        .setMeshoptDecoder(MeshoptDecoder)
+        .load(name.name, (gltf) => {
+          const obj = gltf.scene;
+          obj.traverse((child) => {
+            if (child.isMesh) {
+              child.material.morphtargets = true;
+              if (child.morphTargetInfluences) {
+                morphtargets = child.morphTargetInfluences;
+              }
+              if (child.morphTargetDictionary) {
+                morphNames = child.morphTargetDictionary;
+              }
+              // child.material = new THREE.MeshBasicMaterial({
+              //   color: 0xff0000,
+              //   wireframe: true,
+              // });
+            }
+            if (child.name === "Armature") {
+              console.log(child);
+            }
+          });
+          model = obj;
+          model.position.set(-15, -44, 0);
+          // model.position.set(0, -5, 0);
+          const mesh = gltf.scene.children[0];
+          // mesh.scale.setScalar(0.02);
+          // tc.attach(model);
+          scene.add(model);
+        });
+    });
+  });
+});
+
+/**
  * Model
  */
 let model,
@@ -115,41 +185,41 @@ const box2 = new THREE.Mesh(
   new THREE.MeshBasicMaterial({ color: 0xff0000 })
 );
 const tc = new TransformControls(camera, renderer.domElement);
-const ktx2Loader = new KTX2Loader()
-  .setTranscoderPath("/basis/")
-  .detectSupport(renderer);
+// const ktx2Loader = new KTX2Loader()
+//   .setTranscoderPath("/basis/")
+//   .detectSupport(renderer);
 
-new GLTFLoader()
-  .setKTX2Loader(ktx2Loader)
-  .setMeshoptDecoder(MeshoptDecoder)
-  .load("scene.glb", (gltf) => {
-    const obj = gltf.scene;
-    obj.traverse((child) => {
-      if (child.isMesh) {
-        child.material.morphtargets = true;
-        if (child.morphTargetInfluences) {
-          morphtargets = child.morphTargetInfluences;
-        }
-        if (child.morphTargetDictionary) {
-          morphNames = child.morphTargetDictionary;
-        }
-        // child.material = new THREE.MeshBasicMaterial({
-        //   color: 0xff0000,
-        //   wireframe: true,
-        // });
-      }
-      if (child.name === "Armature") {
-        console.log(child);
-      }
-    });
-    model = obj;
-    model.position.set(-15, -44, 0);
-    // model.position.set(0, -5, 0);
-    const mesh = gltf.scene.children[0];
-    // mesh.scale.setScalar(0.02);
-    tc.attach(model);
-    scene.add(model, tc);
-  });
+// new GLTFLoader()
+//   .setKTX2Loader(ktx2Loader)
+//   .setMeshoptDecoder(MeshoptDecoder)
+//   .load("scene.glb", (gltf) => {
+//     const obj = gltf.scene;
+//     obj.traverse((child) => {
+//       if (child.isMesh) {
+//         child.material.morphtargets = true;
+//         if (child.morphTargetInfluences) {
+//           morphtargets = child.morphTargetInfluences;
+//         }
+//         if (child.morphTargetDictionary) {
+//           morphNames = child.morphTargetDictionary;
+//         }
+//         // child.material = new THREE.MeshBasicMaterial({
+//         //   color: 0xff0000,
+//         //   wireframe: true,
+//         // });
+//       }
+//       if (child.name === "Armature") {
+//         console.log(child);
+//       }
+//     });
+//     model = obj;
+//     model.position.set(-15, -44, 0);
+//     // model.position.set(0, -5, 0);
+//     const mesh = gltf.scene.children[0];
+//     // mesh.scale.setScalar(0.02);
+//     // tc.attach(model);
+//     scene.add(model);
+//   });
 
 // const loader = new FBXLoader();
 // loader.load("baelz.fbx", (obj) => {
