@@ -1,16 +1,14 @@
-# Three.js Journey
+# withavatar 기능 테스트
 
-## Setup
-Download [Node.js](https://nodejs.org/en/download/).
-Run this followed commands:
+1. Exporter 
+  - glb로만 출력 (2022.08.13-2022.08.14)
+  
+2. WireFrame
+  - MeshBasicMaterial로 해결 (2022.08.14-2022.08.14)
+  
+3. Bone & Mesh 구별
+  - threeJS Model 구성요소의 type으로 구별 (2022.08.14-2022.08.14)
 
-``` bash
-# Install dependencies (only the first time)
-npm install
+4. ShapeKey 출력
+  - threeJS Model geometry의 morphTarget 변수로 출력 (2022.08.13-2022.08.14)
 
-# Run the local server at localhost:8080
-npm run dev
-
-# Build for production in the dist/ directory
-npm run build
-```

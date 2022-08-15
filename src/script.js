@@ -7,6 +7,7 @@ import { KTX2Loader } from "three/examples/jsm/loaders/KTX2Loader";
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { Pane } from "tweakpane";
+import { TransformControls } from "three/examples/jsm/controls/TransformControls.js";
 
 // Canvas
 const canvas = document.querySelector("canvas.webgl");
@@ -14,8 +15,8 @@ const btn = document.querySelector("button");
 const pane = new Pane();
 
 const sizes = {
-  width: window.innerWidth,
-  height: window.innerHeight,
+  width: canvas.offsetWidth,
+  height: canvas.offsetHeight,
 };
 
 // Scene
@@ -32,7 +33,7 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   40000
 );
-camera.position.set(0, 8, 3);
+camera.position.set(0, 0, 120);
 scene.add(camera);
 
 /**
@@ -103,56 +104,131 @@ function saveArrayBuffer(buffer, filename) {
 let model,
   morphtargets = [],
   morphNames = {};
-// const ktx2Loader = new KTX2Loader()
-//   .setTranscoderPath("/basis/")
-//   .detectSupport(renderer);
+let position;
 
-// new GLTFLoader()
-//   .setKTX2Loader(ktx2Loader)
-//   .setMeshoptDecoder(MeshoptDecoder)
-//   .load("Fox/glTF/Fox.gltf", (gltf) => {
-//     gltf.scene.traverse((child) => {
-//       if (child.isMesh) {
-//         console.log(child);
-//         child.material.morphtargets = true;
-//         console.log(child.morphtargets);
-//       }
-//     });
-//     const mesh = gltf.scene.children[0];
-//     console.log(mesh);
-//     const head = mesh.getObjectByName("fox");
-//     mesh.scale.setScalar(0.02);
+const box1 = new THREE.Mesh(
+  new THREE.BoxGeometry(10, 10, 10),
+  new THREE.MeshBasicMaterial({ color: 0xff0000 })
+);
+const box2 = new THREE.Mesh(
+  new THREE.BoxGeometry(1, 1, 1),
+  new THREE.MeshBasicMaterial({ color: 0xff0000 })
+);
+const tc = new TransformControls(camera, renderer.domElement);
+const ktx2Loader = new KTX2Loader()
+  .setTranscoderPath("/basis/")
+  .detectSupport(renderer);
 
-//     scene.add(mesh);
-//   });
-const loader = new FBXLoader();
-loader.load("man.fbx", (obj) => {
-  obj.traverse((child) => {
-    if (child.isMesh) {
-      child.material.morphtargets = true;
-      if (child.morphTargetInfluences) {
-        morphtargets = child.morphTargetInfluences;
+new GLTFLoader()
+  .setKTX2Loader(ktx2Loader)
+  .setMeshoptDecoder(MeshoptDecoder)
+  .load("scene.glb", (gltf) => {
+    const obj = gltf.scene;
+    obj.traverse((child) => {
+      if (child.isMesh) {
+        child.material.morphtargets = true;
+        if (child.morphTargetInfluences) {
+          morphtargets = child.morphTargetInfluences;
+        }
+        if (child.morphTargetDictionary) {
+          morphNames = child.morphTargetDictionary;
+        }
+        // child.material = new THREE.MeshBasicMaterial({
+        //   color: 0xff0000,
+        //   wireframe: true,
+        // });
       }
-      if (child.morphTargetDictionary) {
-        morphNames = child.morphTargetDictionary;
+      if (child.name === "Armature") {
+        console.log(child);
       }
-      child.material = new THREE.MeshBasicMaterial({
-        color: 0xff0000,
-        wireframe: true,
-      });
-    }
-    if (child.name === "Armature") {
-      console.log(child);
-    }
+    });
+    model = obj;
+    model.position.set(-15, -44, 0);
+    // model.position.set(0, -5, 0);
+    const mesh = gltf.scene.children[0];
+    // mesh.scale.setScalar(0.02);
+    tc.attach(model);
+    scene.add(model, tc);
   });
-  console.log(obj);
-  obj.scale.setScalar(0.04);
-  model = obj;
-  scene.add(obj);
-  // scene.add(new THREE.SkeletonHelper(model));
-  console.log(renderer.info);
-});
 
+// const loader = new FBXLoader();
+// loader.load("baelz.fbx", (obj) => {
+//   obj.traverse((child) => {
+//     if (child.isMesh) {
+//       child.material.morphtargets = true;
+//       if (child.morphTargetInfluences) {
+//         morphtargets = child.morphTargetInfluences;
+//       }
+//       if (child.morphTargetDictionary) {
+//         morphNames = child.morphTargetDictionary;
+//       }
+//       // child.material = new THREE.MeshBasicMaterial({
+//       //   color: 0xff0000,
+//       //   wireframe: true,
+//       // });
+//     }
+//     if (child.name === "Armature") {
+//       // console.log(child);
+//     }
+//     if (child.type === "SkinnedMesh") {
+//       position = child.position;
+//     }
+//   });
+//   const texture = new THREE.TextureLoader().load("baelz.png");
+//   obj.children[1].material = new THREE.MeshStandardMaterial({
+//     map: texture,
+//   });
+//   // console.log(obj);
+//   // obj.scale.setScalar(0.01);
+//   model = obj;
+//   scene.add(obj);
+//   // scene.add(new THREE.SkeletonHelper(model));
+// });
+
+// const vrmLoader = new VRMLoader();
+// vrmLoader.load("Psycho.vrm", (vrm) => {
+//   const obj = vrm.scene;
+//   model = obj;
+//   obj.traverse((child) => {
+//     if (child.isMesh) {
+//       child.material.morphtargets = true;
+//       if (child.morphTargetInfluences) {
+//         morphtargets = child.morphTargetInfluences;
+//       }
+//       if (child.morphTargetDictionary) {
+//         morphNames = child.morphTargetDictionary;
+//       }
+//       // child.material = new THREE.MeshBasicMaterial({
+//       //   color: 0xff0000,
+//       //   wireframe: true,
+//       // });
+//     }
+//     if (child.name === "Armature") {
+//       console.log(child);
+//     }
+//   });
+
+//   scene.add(obj);
+// });
+
+window.addEventListener("keydown", (e) => {
+  switch (e.keyCode) {
+    case 87: // W
+      tc.setMode("translate");
+      break;
+
+    case 69: // E
+      tc.setMode("rotate");
+      break;
+
+    case 82: // R
+      tc.setMode("scale");
+      break;
+
+    default:
+      break;
+  }
+});
 const findModel = () => {
   if (model) {
     const PARAMS = {};
@@ -188,15 +264,25 @@ findModel();
 //   // obj.scale.setScalar(0.04);
 //   scene.add(obj);
 // });
+const Pos = {
+  x: camera.position.x,
+  y: camera.position.y,
+  z: camera.position.z,
+};
 
-// const vrmLoader = new VRMLoader();
-// vrmLoader.load("man.fbx", (obj) => {
-//   scene.add(obj.scene);
-// });
-// vrmLoader.load("shoe.vrm", (obj) => {
-//   obj.scene.position.set(0, -0.02, 0);
-//   scene.add(obj.scene);
-// });
+const x = pane.addInput(Pos, "x", { min: -500, max: 500 });
+const y = pane.addInput(Pos, "y", { min: -500, max: 500 });
+const z = pane.addInput(Pos, "z", { min: -500, max: 500 });
+
+x.on("change", (e) => {
+  camera.position.x = e.value;
+});
+y.on("change", (e) => {
+  camera.position.y = e.value;
+});
+z.on("change", (e) => {
+  camera.position.z = e.value;
+});
 
 /**
  * Lights
@@ -235,7 +321,16 @@ window.addEventListener("resize", () => {
 
 // OrbitControls
 const controls = new OrbitControls(camera, renderer.domElement);
-controls.target.set(0, 0.75, 0);
+
+tc.addEventListener("dragging-changed", (e) => {
+  controls.enableZoom = !e.value;
+  console.log(model.position);
+});
+
+// controls.update();
+controls.addEventListener("change", () => {
+  console.log(camera.position);
+});
 
 const tick = () => {
   controls.update();
