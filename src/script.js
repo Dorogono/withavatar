@@ -8,6 +8,7 @@ import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { Pane } from "tweakpane";
 import { TransformControls } from "three/examples/jsm/controls/TransformControls.js";
+import { unzipSunc } from "three/examples/jsm/libs/fflate.module";
 
 // Canvas
 const canvas = document.querySelector("canvas.webgl");
@@ -50,6 +51,7 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 /**
  * Loader
  */
+
 function exportGLTF(input) {
   const gltfExporter = new GLTFExporter();
 
@@ -101,71 +103,112 @@ function saveArrayBuffer(buffer, filename) {
 /**
  * JSZip
  */
-let name;
+let name, blobs;
 const input = document.getElementById("uploadInput");
 input.addEventListener("change", (evt) => {
-  // function handleFile(f) {
-  //   console.log("title : ", f.name);
+  function handleFile(f) {
+    // console.log("title : ", f.name);
 
-  //   JSZip.loadAsync(f).then((zip) => {
-  //     zip.forEach((realativePath, zipEntry) => {
-  //       console.log("relativePath: ", realativePath);
-  //       console.log("zipEntry: ", zipEntry);
-  //       const file = zip.file(realativePath);
-
-  //       file.async("blob").then((buf) => {
-  //         console.log(buf);
-  //       });
-  //     });
-  //   });
-  // }
-
-  // const files = evt.target.files;
-  // for (let i = 0; i < files.length; i++) {
-  //   handleFile(files[i]);
-  // }
-
-  JSZipUtils.getBinaryContent("/scene.zip", (err, data) => {
-    JSZip.loadAsync(data).then((file) => {
-      name = file.files["scene.glb"];
-      console.log(name);
-      const ktx2Loader = new KTX2Loader()
-        .setTranscoderPath("/basis/")
-        .detectSupport(renderer);
-
-      new GLTFLoader()
-        .setKTX2Loader(ktx2Loader)
-        .setMeshoptDecoder(MeshoptDecoder)
-        .load(name.name, (gltf) => {
-          const obj = gltf.scene;
-          obj.traverse((child) => {
-            if (child.isMesh) {
-              child.material.morphtargets = true;
-              if (child.morphTargetInfluences) {
-                morphtargets = child.morphTargetInfluences;
-              }
-              if (child.morphTargetDictionary) {
-                morphNames = child.morphTargetDictionary;
-              }
-              // child.material = new THREE.MeshBasicMaterial({
-              //   color: 0xff0000,
-              //   wireframe: true,
-              // });
-            }
-            if (child.name === "Armature") {
-              console.log(child);
-            }
+    JSZip.loadAsync(f).then((zip) => {
+      zip.forEach((filename) => {
+        const file = zip.file(filename);
+        file
+          .async("arraybuffer")
+          .then((buffer) => {
+            const blob = new Blob([buffer], {
+              type: "application/octet-stream",
+            });
+            blobs = URL.createObjectURL(blob);
+          })
+          .then(() => {
+            console.log(blobs);
+            new GLTFLoader().load(blobs, (gltf) => {
+              const obj = gltf.scene;
+              obj.traverse((child) => {
+                if (child.isMesh) {
+                  child.material.morphtargets = true;
+                  if (child.morphTargetInfluences) {
+                    morphtargets = child.morphTargetInfluences;
+                  }
+                  if (child.morphTargetDictionary) {
+                    morphNames = child.morphTargetDictionary;
+                  }
+                  // child.material = new THREE.MeshBasicMaterial({
+                  //   color: 0xff0000,
+                  //   wireframe: true,
+                  // });
+                }
+                if (child.name === "Armature") {
+                  // console.log(child);
+                }
+              });
+              model = obj;
+              model.position.set(-15, -44, 0);
+              // model.position.set(0, -5, 0);
+              const mesh = gltf.scene.children[0];
+              // mesh.scale.setScalar(0.02);
+              // tc.attach(model);
+              scene.add(gltf.scene);
+            });
           });
-          model = obj;
-          model.position.set(-15, -44, 0);
-          // model.position.set(0, -5, 0);
-          const mesh = gltf.scene.children[0];
-          // mesh.scale.setScalar(0.02);
-          // tc.attach(model);
-          scene.add(model);
-        });
+      });
     });
-  });
+  }
+
+  const files = evt.target.files;
+  for (let i = 0; i < files.length; i++) {
+    handleFile(files[i]);
+  }
+  // new THREE.Loader()
+  //   .loadAsync("baelz.fbx")
+  //   .then((res) => console.log(res))
+  //   .then((data) => console.log(data));
+
+  // const ktx2Loader = new KTX2Loader()
+  //   .setTranscoderPath("/basis/")
+  //   .detectSupport(renderer);
+  // new GLTFLoader()
+  //   .setKTX2Loader(ktx2Loader)
+  //   .setMeshoptDecoder(MeshoptDecoder)
+  //   .load(
+  //     "blob:http://121.152.14.78:8080/a9627583-bfcd-436c-981c-38484bff5922",
+  //     (gltf) => {
+  //       const obj = gltf.scene;
+  //       obj.traverse((child) => {
+  //         if (child.isMesh) {
+  //           child.material.morphtargets = true;
+  //           if (child.morphTargetInfluences) {
+  //             morphtargets = child.morphTargetInfluences;
+  //           }
+  //           if (child.morphTargetDictionary) {
+  //             morphNames = child.morphTargetDictionary;
+  //           }
+  //           // child.material = new THREE.MeshBasicMaterial({
+  //           //   color: 0xff0000,
+  //           //   wireframe: true,
+  //           // });
+  //         }
+  //         if (child.name === "Armature") {
+  //           // console.log(child);
+  //         }
+  //       });
+  //       model = obj;
+  //       model.position.set(-15, -44, 0);
+  //       // model.position.set(0, -5, 0);
+  //       const mesh = gltf.scene.children[0];
+  //       // mesh.scale.setScalar(0.02);
+  //       // tc.attach(model);
+  //       scene.add(gltf.scene);
+  //     }
+  //   );
+
+  // JSZipUtils.getBinaryContent("/scene.zip", (err, data) => {
+  //   JSZip.loadAsync(data).then((file) => {
+  //     name = file.files["scene.glb"];
+  //     console.log(name);
+
+  //   });
+  // });
 });
 
 /**
@@ -222,7 +265,7 @@ const tc = new TransformControls(camera, renderer.domElement);
 //   });
 
 // const loader = new FBXLoader();
-// loader.load("baelz.fbx", (obj) => {
+// loader.load("guradino.fbx", (obj) => {
 //   obj.traverse((child) => {
 //     if (child.isMesh) {
 //       child.material.morphtargets = true;
@@ -244,8 +287,8 @@ const tc = new TransformControls(camera, renderer.domElement);
 //       position = child.position;
 //     }
 //   });
-//   const texture = new THREE.TextureLoader().load("baelz.png");
-//   obj.children[1].material = new THREE.MeshStandardMaterial({
+//   const texture = new THREE.TextureLoader().load("guradino.png");
+//   obj.children[0].material = new THREE.MeshStandardMaterial({
 //     map: texture,
 //   });
 //   // console.log(obj);
@@ -398,9 +441,6 @@ tc.addEventListener("dragging-changed", (e) => {
 });
 
 // controls.update();
-controls.addEventListener("change", () => {
-  console.log(camera.position);
-});
 
 const tick = () => {
   controls.update();
