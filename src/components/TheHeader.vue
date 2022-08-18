@@ -18,7 +18,9 @@
       </button>
     </div>
     <div class="flex-none">
-      <router-link to="/" class="normal-case text-xl"> withAvatar </router-link>
+      <router-link to="/" class="normal-case text-2xl">
+        withAvatar
+      </router-link>
     </div>
   </div>
 </template>

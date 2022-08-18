@@ -13,12 +13,13 @@
       </Scene>
     </Renderer>
     <article class="overflow-scroll options overflow-x-hidden">
+      <div>{{ modelInfo.vertexes }}, {{ modelInfo.triangles }}</div>
       <div
-        class="flex justify-between w-full"
+        class="flex justify-between px-5 h-20 items-center shadow"
         v-for="morph in morphOptions"
         :key="morph[0]"
       >
-        <div>{{ morph[0] }}</div>
+        <div class="text-2xl font-normal">{{ morph[0] }}</div>
         <input
           type="checkbox"
           class="toggle"
@@ -31,19 +32,25 @@
 </template>
 
 <script lang="ts">
-import { ref } from "vue";
+import { ref, reactive } from "vue";
 import JSZip from "jszip";
 import JSZipUtils from "jszip-utils";
 
 export default {
   setup() {
     const jszip = new JSZip();
+    const zipURL = "baelz/baelz.zip";
+
+    const renderer = ref(null);
     const isModelLoading = ref(true);
     const url = ref("");
-    const zipURL = "baelz/baelz.zip";
     const morphTargets = ref<any>(null);
     const morphTargetNames = ref<any>(null);
     const morphOptions = ref({});
+    const modelInfo = reactive({
+      vertexes: 0,
+      triangles: 0,
+    });
 
     JSZipUtils.getBinaryContent(zipURL, (err, data) => {
       jszip.loadAsync(data).then((zip) => {
@@ -60,10 +67,11 @@ export default {
       });
     });
 
-    function onLoad(obj) {
+    function onLoad(obj: any) {
       const mesh = obj.scene;
-      mesh.traverse((child) => {
+      mesh.traverse((child: any) => {
         if (child.isMesh) {
+          modelInfo.vertexes += child.geometry.attributes.position.count;
           child.material.morphtargets = true;
           if (child.morphTargetInfluences) {
             morphTargets.value = child.morphTargetInfluences;
@@ -98,12 +106,37 @@ export default {
       const idx = morphTargetNames.value[target.id];
       if (morphTargets.value[idx] === 0) {
         morphTargets.value[idx] = 1;
+        target.parentNode.classList.add("bg-accent");
       } else {
+        target.parentNode.classList.remove("bg-accent");
         morphTargets.value[idx] = 0;
       }
     }
 
-    return { url, isModelLoading, onLoad, morphOptions, onMorphValueChange };
+    function getTriangles() {
+      if (
+        renderer.value?.["renderer"]?.["info"]?.["render"]?.["triangles"] !==
+          0 &&
+        renderer.value
+      ) {
+        modelInfo.triangles =
+          renderer.value?.["renderer"]?.["info"]?.["render"]?.["triangles"];
+      } else {
+        requestAnimationFrame(getTriangles);
+      }
+    }
+
+    getTriangles();
+
+    return {
+      url,
+      isModelLoading,
+      onLoad,
+      morphOptions,
+      onMorphValueChange,
+      renderer,
+      modelInfo,
+    };
   },
 };
 </script>
