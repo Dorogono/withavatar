@@ -34,3 +34,10 @@
 ### 10. Wireframe 보기 및 Skeleton 보기 (2022.08.21-2022.08.21)
   - Mesh Material 교체 함수 추가.
   - SkeletonHelper 함수 추가.
+  
+### 11. Firebase 자동 배포 설정 완료 (2022.08.21-2022.08.21)
+  - Firebase 호스팅 서비스 연결 완료.
+  - 커스텀 도메인 연결 완료 [Demo](https://demo.withavatar.shop)
+
+### 12. .mp4 비디오 빌드 완료 (2022.08.21-2022.08.21)
+  - vite.config 파일 assetsInclude 설정 완료.
