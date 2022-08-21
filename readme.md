@@ -30,3 +30,7 @@
   
 ### 9. 모델 정보인 Vertex, Triangle 정보 추출 (2022.08.18-2022.08.18)
   - Renderer를 활용해 추출 완료.
+
+### 10. Wireframe 보기 및 Skeleton 보기 (2022.08.21-2022.08.21)
+  - Mesh Material 교체 함수 추가.
+  - SkeletonHelper 함수 추가.
