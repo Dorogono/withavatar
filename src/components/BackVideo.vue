@@ -1,12 +1,8 @@
 <template>
   <section class="w-full">
-    <video
-      autoplay="true"
-      loop="true"
-      muted
-      class="object-cover w-full"
-      src="mainVideo.mp4"
-    ></video>
+    <video autoplay="true" loop="true" muted class="object-cover w-full">
+      <source src="/mainVideo.mp4" />
+    </video>
     <div
       class="flex flex-col justify-center items-center video-text w-full h-full absolute top-0"
     >
