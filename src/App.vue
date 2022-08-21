@@ -1,6 +1,8 @@
 <template>
   <the-header></the-header>
-  <router-view></router-view>
+  <main>
+    <router-view></router-view>
+  </main>
 </template>
 
 <script lang="ts">
@@ -14,3 +16,5 @@ export default defineComponent({
   setup() {},
 });
 </script>
+
+<style scoped></style>
