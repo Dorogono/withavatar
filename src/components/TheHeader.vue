@@ -1,14 +1,11 @@
 <template>
   <div class="navbar bg-base-100 items-center sticky top-0 px-7">
-    <div class="flex-1">
+    <div class="flex mr-10">
       <router-link to="/" class="normal-case text-3xl font-bold">
         withAvatar
       </router-link>
     </div>
-    <div class="flex-none tabs tabs-boxed">
-      <router-link to="/viewer" class="tab"> Viewer </router-link>
-      <router-link to="/" class="tab"> Editor </router-link>
-    </div>
+    <router-link to="/viewer"> Viewer </router-link>
   </div>
 </template>
 

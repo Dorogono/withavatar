@@ -1,9 +1,9 @@
 <template>
-  <section class="flex justify-center items-center py-10 w-[1000px]">
+  <section class="flex justify-center items-center w-[1000px] my-0 mx-auto">
     <article class="w-[500px] h-[500px]">
       <Renderer ref="renderer" orbitCtrl resize="true">
         <Camera :position="{ x: 0, y: 0, z: 120 }" :aspect="75" />
-        <Scene background="gray">
+        <Scene background="#efede4">
           <AmbientLight />
           <GltfModel
             v-if="!isModelLoading"
@@ -41,38 +41,22 @@
           Morph Target
         </button>
       </div>
-      <div v-if="clickedNav === 'info'">
-        <div>Vertexes : {{ modelInfo.vertexes }}</div>
-        <div>Triangles : {{ modelInfo.triangles }}</div>
-        <label class="swap text-xl">
-          <input
-            type="checkbox"
-            v-model="wireframeChecked"
-            @click="viewWireframe"
-          />
-          <div class="swap-on btn bg-accent">Hide Wireframe</div>
-          <div class="swap-off btn">Show Wireframe</div>
-        </label>
+      <div v-show="clickedNav === 'info'">
+        <model-info
+          :modelInfo="modelInfo"
+          :meshes="meshes"
+          :prevMaterial="prevMat"
+        ></model-info>
       </div>
-      <div v-if="clickedNav === 'bone'">
-        <label class="swap text-xl">
-          <input type="checkbox" v-model="boneChecked" @click="viewBones" />
-          <div class="swap-off btn">Show Bones</div>
-          <div class="swap-on btn bg-accent">Hide Bones</div>
-        </label>
+      <div v-show="clickedNav === 'bone'">
+        <bone-list :bones="boneList" :renderer="renderer"></bone-list>
       </div>
       <div v-show="clickedNav === 'morph'">
-        <div
-          class="flex justify-between px-5 h-20 items-center shadow"
-          v-for="morph in morphOptions"
-          :key="morph[0]"
-        >
-          <morph-items
-            :name="morph[0]"
-            :morphList="morphTargets"
-            :targetNamesList="morphTargetNames"
-          />
-        </div>
+        <morph-list
+          :morphOptions="morphOptions"
+          :morphNames="morphTargetNames"
+          :morphTargets="morphTargets"
+        ></morph-list>
       </div>
     </article>
   </section>
@@ -80,19 +64,26 @@
 
 <script lang="ts">
 import { ref, reactive } from "vue";
+import MorphList from "../components/MorphList.vue";
+import BoneList from "../components/BoneList.vue";
+import ModelInfo from "../components/ModelInfo.vue";
+
 import JSZip from "jszip";
 import JSZipUtils from "jszip-utils";
-import { MeshBasicMaterial, SkeletonHelper } from "three";
-import MorphItems from "../components/MorphItems.vue";
+import { MeshBasicMaterial } from "three";
 
 export default {
-  components: { MorphItems },
+  components: { MorphList, BoneList, ModelInfo },
   setup() {
     const jszip = new JSZip();
     const zipURL = "baelz/baelz.zip";
 
     const renderer = ref(null);
     const isModelLoading = ref(true);
+    const clickedNav = ref("info");
+    const morphChecked = ref(false);
+    const wireframeChecked = ref(false);
+
     const url = ref("");
     const model = ref<any>(null);
     const meshes = ref<any>({});
@@ -100,14 +91,11 @@ export default {
     const morphTargets = ref<any>(null);
     const morphTargetNames = ref<any>(null);
     const morphOptions = ref({});
+    const boneList = ref({});
     const modelInfo = reactive({
       vertexes: 0,
       triangles: 0,
     });
-    const boneChecked = ref(false);
-    const wireframeChecked = ref(false);
-    const clickedNav = ref("info");
-    const morphChecked = ref(false);
 
     JSZipUtils.getBinaryContent(zipURL, (err, data) => {
       jszip.loadAsync(data).then((zip) => {
@@ -140,8 +128,8 @@ export default {
             morphTargetNames.value = child.morphTargetDictionary;
           }
         }
-        if (child.name === "Armature") {
-          // console.log(child);
+        if (child.isBone) {
+          boneList.value[child.name] = child;
         }
         if (morphTargets.value && morphTargetNames.value) {
           morphOptions.value = Object.entries(
@@ -163,17 +151,6 @@ export default {
         Object.keys(meshes.value).map((mesh) => {
           meshes.value[mesh].material = prevMat.value[mesh];
         });
-      }
-    }
-
-    function viewBones() {
-      let skeleton: SkeletonHelper;
-      const scene: any = renderer.value?.["scene"];
-      if (boneChecked.value === false) {
-        skeleton = new SkeletonHelper(model.value);
-        scene.add(skeleton);
-      } else {
-        scene.remove(scene.children[scene.children.length - 1]);
       }
     }
 
@@ -217,12 +194,13 @@ export default {
       handleSelected,
       clickedNav,
       viewWireframe,
-      viewBones,
-      boneChecked,
       wireframeChecked,
       morphChecked,
       morphTargets,
       morphTargetNames,
+      boneList,
+      meshes,
+      prevMat,
     };
   },
 };
