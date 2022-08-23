@@ -5,6 +5,7 @@
         withAvatar
       </router-link>
     </div>
-    <router-link to="/viewer"> Viewer </router-link>
+    <router-link to="/viewer" class="mr-5"> Viewer </router-link>
+    <router-link to="/suggestion"> Suggestion </router-link>
   </div>
 </template>

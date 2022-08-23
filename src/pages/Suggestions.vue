@@ -47,9 +47,9 @@ export default defineComponent({
 
     const router = useRouter();
 
-    emailjs.init("T6hcwop7mOJkD1vxA");
-    const serviceID = "service_627qxqh";
-    const templateID = "template_axkz0p9";
+    emailjs.init(import.meta.env.VITE_PUBLIC_KEY);
+    const serviceID = import.meta.env.VITE_SERVICE_ID;
+    const templateID = import.meta.env.VITE_TEMPLATE_ID;
 
     function sendMail({ target }) {
       alreadySent.value = true;
@@ -62,8 +62,9 @@ export default defineComponent({
           alreadySent.value = false;
         },
         (error) => {
+          alert("오늘 할당량이 지났습니다. 죄송합니다.");
+          router.push("/");
           alreadySent.value = false;
-          alert("메일이 보내지지 않았습니다. 다시 시도해주세요.");
         }
       );
     }
