@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@emailjs/browser": "^3.6.2",
     "@types/three": "^0.143.0",
     "autoprefixer": "^10.4.8",
     "daisyui": "^2.22.0",

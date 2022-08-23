@@ -1,6 +1,6 @@
 <template>
-  <section class="flex justify-center items-center w-[1000px] my-0 mx-auto">
-    <article class="w-[500px] h-[500px]">
+  <section class="flex justify-center items-center w-[1000px] mx-auto">
+    <article class="w-[500px] h-[500px] relative">
       <Renderer ref="renderer" orbitCtrl resize="true">
         <Camera :position="{ x: 0, y: 0, z: 120 }" :aspect="75" />
         <Scene background="#efede4">
@@ -10,9 +10,18 @@
             :src="url"
             :position="{ x: 0, y: -55, z: 0 }"
             @load="onLoad"
+            @progress="onProgress"
           />
         </Scene>
       </Renderer>
+      <div class="w-[500px] h-[500px]" v-if="progress !== 100">
+        <progress
+          class="progress progress-success w-56 absolute top-1/2 left-1/4 z-40"
+          :value="progress"
+          max="100"
+        ></progress>
+        <div class="w-full h-full bg-[rgba(0,0,0,0.8)] absolute top-0"></div>
+      </div>
     </article>
     <article class="overflow-scroll overflow-x-hidden w-[500px] h-[500px]">
       <div class="tabs">
@@ -70,7 +79,6 @@ import ModelInfo from "../components/ModelInfo.vue";
 
 import JSZip from "jszip";
 import JSZipUtils from "jszip-utils";
-import { MeshBasicMaterial } from "three";
 
 export default {
   components: { MorphList, BoneList, ModelInfo },
@@ -81,8 +89,7 @@ export default {
     const renderer = ref(null);
     const isModelLoading = ref(true);
     const clickedNav = ref("info");
-    const morphChecked = ref(false);
-    const wireframeChecked = ref(false);
+    const progress = ref(0);
 
     const url = ref("");
     const model = ref<any>(null);
@@ -112,6 +119,10 @@ export default {
       });
     });
 
+    function onProgress(e) {
+      progress.value = (e.loaded / e.total) * 100;
+    }
+
     function onLoad(obj: any) {
       const mesh = obj.scene;
       model.value = mesh;
@@ -137,21 +148,6 @@ export default {
           );
         }
       });
-    }
-
-    function viewWireframe() {
-      if (wireframeChecked.value === false) {
-        Object.keys(meshes.value).map((mesh) => {
-          meshes.value[mesh].material = new MeshBasicMaterial({
-            color: 0xff00ff,
-            wireframe: true,
-          });
-        });
-      } else {
-        Object.keys(meshes.value).map((mesh) => {
-          meshes.value[mesh].material = prevMat.value[mesh];
-        });
-      }
     }
 
     function getListOfMorphTargets(morphT: Object, morphN: Object) {
@@ -188,14 +184,13 @@ export default {
       url,
       isModelLoading,
       onLoad,
+      onProgress,
+      progress,
       morphOptions,
       renderer,
       modelInfo,
       handleSelected,
       clickedNav,
-      viewWireframe,
-      wireframeChecked,
-      morphChecked,
       morphTargets,
       morphTargetNames,
       boneList,

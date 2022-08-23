@@ -28,9 +28,11 @@
   <div class="hero flex mb-10">
     <div class="hero-content flex-col items-start">
       <h1 class="font-bold text-4xl">Mouse Event</h1>
-      <p>1. 상하좌우로 드래그해 모델을 둘러보세요.</p>
-      <p>2. 오른쪽 버튼으로 화면 이동이 가능합니다.</p>
-      <p>3. 마우스 휠로 확대/축소가 가능합니다.</p>
+      <ol>
+        <li>1. 상하좌우로 드래그해 모델을 둘러보세요.</li>
+        <li>2. 오른쪽 버튼으로 화면 이동이 가능합니다.</li>
+        <li>3. 마우스 휠로 확대/축소가 가능합니다.</li>
+      </ol>
     </div>
   </div>
   <button
