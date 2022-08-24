@@ -9,6 +9,7 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { Pane } from "tweakpane";
 import { TransformControls } from "three/examples/jsm/controls/TransformControls.js";
 import { unzipSunc } from "three/examples/jsm/libs/fflate.module";
+import { MeshPhongMaterial } from "three";
 
 // Canvas
 const canvas = document.querySelector("canvas.webgl");
@@ -121,7 +122,6 @@ input.addEventListener("change", (evt) => {
             blobs = URL.createObjectURL(blob);
           })
           .then(() => {
-            console.log(blobs);
             new GLTFLoader().load(blobs, (gltf) => {
               const obj = gltf.scene;
               obj.traverse((child) => {
@@ -159,56 +159,6 @@ input.addEventListener("change", (evt) => {
   for (let i = 0; i < files.length; i++) {
     handleFile(files[i]);
   }
-  // new THREE.Loader()
-  //   .loadAsync("baelz.fbx")
-  //   .then((res) => console.log(res))
-  //   .then((data) => console.log(data));
-
-  // const ktx2Loader = new KTX2Loader()
-  //   .setTranscoderPath("/basis/")
-  //   .detectSupport(renderer);
-  // new GLTFLoader()
-  //   .setKTX2Loader(ktx2Loader)
-  //   .setMeshoptDecoder(MeshoptDecoder)
-  //   .load(
-  //     "blob:http://121.152.14.78:8080/a9627583-bfcd-436c-981c-38484bff5922",
-  //     (gltf) => {
-  //       const obj = gltf.scene;
-  //       obj.traverse((child) => {
-  //         if (child.isMesh) {
-  //           child.material.morphtargets = true;
-  //           if (child.morphTargetInfluences) {
-  //             morphtargets = child.morphTargetInfluences;
-  //           }
-  //           if (child.morphTargetDictionary) {
-  //             morphNames = child.morphTargetDictionary;
-  //           }
-  //           // child.material = new THREE.MeshBasicMaterial({
-  //           //   color: 0xff0000,
-  //           //   wireframe: true,
-  //           // });
-  //         }
-  //         if (child.name === "Armature") {
-  //           // console.log(child);
-  //         }
-  //       });
-  //       model = obj;
-  //       model.position.set(-15, -44, 0);
-  //       // model.position.set(0, -5, 0);
-  //       const mesh = gltf.scene.children[0];
-  //       // mesh.scale.setScalar(0.02);
-  //       // tc.attach(model);
-  //       scene.add(gltf.scene);
-  //     }
-  //   );
-
-  // JSZipUtils.getBinaryContent("/scene.zip", (err, data) => {
-  //   JSZip.loadAsync(data).then((file) => {
-  //     name = file.files["scene.glb"];
-  //     console.log(name);
-
-  //   });
-  // });
 });
 
 /**
@@ -236,6 +186,7 @@ const tc = new TransformControls(camera, renderer.domElement);
 //   .setKTX2Loader(ktx2Loader)
 //   .setMeshoptDecoder(MeshoptDecoder)
 //   .load("scene.glb", (gltf) => {
+//     console.time("loadGLTF");
 //     const obj = gltf.scene;
 //     obj.traverse((child) => {
 //       if (child.isMesh) {
@@ -262,12 +213,14 @@ const tc = new TransformControls(camera, renderer.domElement);
 //     // mesh.scale.setScalar(0.02);
 //     // tc.attach(model);
 //     scene.add(model);
+//     console.timeEnd("loadGLTF");
 //   });
 
 // const loader = new FBXLoader();
-// loader.load("guradino.fbx", (obj) => {
+// loader.load("NON_SDK3.0_ver1.1/fbx/non_fbx.fbx", (obj) => {
 //   obj.traverse((child) => {
 //     if (child.isMesh) {
+//       console.log(child.name, child.material.name);
 //       child.material.morphtargets = true;
 //       if (child.morphTargetInfluences) {
 //         morphtargets = child.morphTargetInfluences;
@@ -287,42 +240,58 @@ const tc = new TransformControls(camera, renderer.domElement);
 //       position = child.position;
 //     }
 //   });
-//   const texture = new THREE.TextureLoader().load("guradino.png");
-//   obj.children[0].material = new THREE.MeshStandardMaterial({
-//     map: texture,
-//   });
+//   // const texture = new THREE.TextureLoader().load("guradino.png");
+//   // obj.children[0].material = new THREE.MeshStandardMaterial({
+//   // map: texture,
+//   // });
 //   // console.log(obj);
 //   // obj.scale.setScalar(0.01);
 //   model = obj;
 //   scene.add(obj);
 //   // scene.add(new THREE.SkeletonHelper(model));
 // });
+const morphMap = new Map();
+let targetArrIdx = 0;
+const vrmLoader = new VRMLoader();
+vrmLoader.load("boothAvatar.vrm", (vrm) => {
+  const obj = vrm.scene;
+  model = obj;
+  obj.traverse((child) => {
+    if (child.isMesh) {
+      child.material.morphtargets = true;
+      if (child.morphTargetInfluences) {
+        morphtargets.push(child.morphTargetInfluences);
+        const morphDicEntries = Object.entries(child.morphTargetDictionary);
+        morphDicEntries.forEach((morphtarget) => {
+          if (!morphMap.has(morphtarget[0])) {
+            morphMap.set(morphtarget[0], [[targetArrIdx, morphtarget[1]]]);
+          } else {
+            morphMap.get(morphtarget[0]).push([targetArrIdx, morphtarget[1]]);
+          }
+        });
+        targetArrIdx++;
+      }
+      // if (child.morphTargetDictionary) {
+      //   const entries = Object.entries(child.morphTargetDictionary);
+      //   const len = entries.length;
+      //   let i = 0;
+      //   while (i < len) {
+      //     morphNames[entries[i][0]] = entries[i][1];
+      //     i++;
+      //   }
+      // }
+      // child.material = new THREE.MeshBasicMaterial({
+      //   color: 0xff0000,
+      //   wireframe: true,
+      // });
+    }
+    if (child.name === "Armature") {
+      // console.log(child);
+    }
+  });
 
-// const vrmLoader = new VRMLoader();
-// vrmLoader.load("Psycho.vrm", (vrm) => {
-//   const obj = vrm.scene;
-//   model = obj;
-//   obj.traverse((child) => {
-//     if (child.isMesh) {
-//       child.material.morphtargets = true;
-//       if (child.morphTargetInfluences) {
-//         morphtargets = child.morphTargetInfluences;
-//       }
-//       if (child.morphTargetDictionary) {
-//         morphNames = child.morphTargetDictionary;
-//       }
-//       // child.material = new THREE.MeshBasicMaterial({
-//       //   color: 0xff0000,
-//       //   wireframe: true,
-//       // });
-//     }
-//     if (child.name === "Armature") {
-//       console.log(child);
-//     }
-//   });
-
-//   scene.add(obj);
-// });
+  scene.add(obj);
+});
 
 window.addEventListener("keydown", (e) => {
   switch (e.keyCode) {
@@ -345,23 +314,43 @@ window.addEventListener("keydown", (e) => {
 const findModel = () => {
   if (model) {
     const PARAMS = {};
-    const nameArr = Object.entries(morphNames);
-    const name = Object.keys(morphNames);
-    const n = morphtargets.length;
-
-    for (let i = 0; i < n; i++) {
-      PARAMS[nameArr[i][0]] = morphtargets[nameArr[i][1]];
-    }
-    let i = 0;
-    while (i < n) {
-      const input = pane.addInput(PARAMS, name[i], { min: 0, max: 1 });
+    const morphArr = Array.from(morphMap.entries());
+    morphArr.forEach((morph) => {
+      PARAMS[morph[0]] = 0;
+      const input = pane.addInput(PARAMS, morph[0], { min: 0, max: 1 });
       input.on("change", (e) => {
-        const name = e.target.label;
-        const idx = morphNames[name];
-        morphtargets[idx] = e.value;
+        morph[1].forEach((morphInfo) => {
+          morphtargets[morphInfo[0]][morphInfo[1]] = e.value;
+        });
       });
-      i++;
-    }
+    });
+
+    // const nameArr = Object.entries(morphNames);
+    // const name = Object.keys(morphNames);
+    // for (let i = 0; i < n; i++) {
+    //   PARAMS[nameArr[i][0]] = 0;
+    // }
+
+    // let i = 0;
+    // while (i < n) {
+    //   const input = pane.addInput(PARAMS, name[i], { min: 0, max: 1 });
+    //   input.on("change", (e) => {
+    //     const name = e.target.label;
+    //     const idx = morphNames[name];
+    //     const point = name.split(".")[0];
+    //     if (point === "blendShape1") {
+    //       morphtargets[0][idx] = e.value;
+    //       morphtargets[1][idx] = e.value;
+    //       morphtargets[2][idx] = e.value;
+    //       morphtargets[3][idx] = e.value;
+    //     }
+    //     if (point === "blendShape2") {
+    //       morphtargets[4][idx] = e.value;
+    //       morphtargets[5][idx] = e.value;
+    //     }
+    //   });
+    //   i++;
+    // }
     cancelAnimationFrame(findModel);
   } else {
     requestAnimationFrame(findModel);
