@@ -168,13 +168,14 @@ let model,
   morphtargets = [],
   morphNames = {};
 let position;
+const size = 0.1;
 
 const box1 = new THREE.Mesh(
-  new THREE.BoxGeometry(10, 10, 10),
+  new THREE.BoxGeometry(size, size, size),
   new THREE.MeshBasicMaterial({ color: 0xff0000 })
 );
 const box2 = new THREE.Mesh(
-  new THREE.BoxGeometry(1, 1, 1),
+  new THREE.BoxGeometry(size, size, size),
   new THREE.MeshBasicMaterial({ color: 0xff0000 })
 );
 const tc = new TransformControls(camera, renderer.domElement);
@@ -188,6 +189,7 @@ const tc = new TransformControls(camera, renderer.domElement);
 //   .load("scene.glb", (gltf) => {
 //     console.time("loadGLTF");
 //     const obj = gltf.scene;
+
 //     obj.traverse((child) => {
 //       if (child.isMesh) {
 //         child.material.morphtargets = true;
@@ -217,7 +219,7 @@ const tc = new TransformControls(camera, renderer.domElement);
 //   });
 
 // const loader = new FBXLoader();
-// loader.load("NON_SDK3.0_ver1.1/fbx/non_fbx.fbx", (obj) => {
+// loader.load("man.fbx", (obj) => {
 //   obj.traverse((child) => {
 //     if (child.isMesh) {
 //       console.log(child.name, child.material.name);
@@ -253,9 +255,27 @@ const tc = new TransformControls(camera, renderer.domElement);
 const morphMap = new Map();
 let targetArrIdx = 0;
 const vrmLoader = new VRMLoader();
-vrmLoader.load("boothAvatar.vrm", (vrm) => {
+vrmLoader.load("female_two.vrm", (vrm) => {
   const obj = vrm.scene;
   model = obj;
+  const helper = new THREE.BoundingBoxHelper(obj, 0xff0000);
+  helper.update();
+  helper.geometry.computeBoundingBox();
+  box1.position.set(
+    helper.geometry.boundingBox.max.x,
+    helper.geometry.boundingBox.max.y,
+    helper.geometry.boundingBox.max.z
+  );
+  box2.position.set(
+    helper.geometry.boundingBox.min.x,
+    helper.geometry.boundingBox.min.y,
+    helper.geometry.boundingBox.min.z
+  );
+
+  scene.add(box1, box2);
+  scene.add(helper);
+  console.log(helper);
+
   obj.traverse((child) => {
     if (child.isMesh) {
       child.material.morphtargets = true;
@@ -270,6 +290,8 @@ vrmLoader.load("boothAvatar.vrm", (vrm) => {
           }
         });
         targetArrIdx++;
+      }
+      if (child.type === "SkinnedMesh") {
       }
       // if (child.morphTargetDictionary) {
       //   const entries = Object.entries(child.morphTargetDictionary);
