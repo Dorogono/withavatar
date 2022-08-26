@@ -62,7 +62,7 @@ export default defineComponent({
           alreadySent.value = false;
         },
         (error) => {
-          alert("오늘 할당량이 지났습니다. 죄송합니다.");
+          alert("오늘은 더이상 메일을 받지 않습니다. 죄송합니다.");
           router.push("/");
           alreadySent.value = false;
         }
