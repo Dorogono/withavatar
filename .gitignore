@@ -1,6 +1,6 @@
 # firebase
-.firebase/
-**/.firebaserc
+.firebase
+.firebaserc
 
 # Logs
 logs
